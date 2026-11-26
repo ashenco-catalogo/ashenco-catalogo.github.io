@@ -1,9 +1,10 @@
 {
+  "id": "./inventario.html",
   "name": "ashen co. · Inventario",
   "short_name": "ashen inv",
-  "description": "Inventario de ropa de ashen co. Funciona sin internet y guarda los datos en el celular.",
+  "description": "Inventario de ropa de ashen co. conectado con la tienda.",
   "lang": "es-CO",
-  "start_url": "./",
+  "start_url": "./inventario.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
