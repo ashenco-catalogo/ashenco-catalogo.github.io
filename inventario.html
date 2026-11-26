@@ -136,9 +136,9 @@ input[type=date].in{display:block;-webkit-appearance:none;appearance:none}
 .prices div{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
 .prices small{display:block;font-size:12.5px;color:var(--mute)}
 .prices b{display:block;font-size:17px;white-space:nowrap;font-variant-numeric:tabular-nums}
-.trow{display:grid;grid-template-columns:64px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.trow{display:grid;grid-template-columns:minmax(64px,34%) minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
 .trow:first-of-type{border-top:0}
-.tn{height:48px;border-radius:12px;background:var(--s2);display:grid;place-items:center;font-weight:800;font-size:16px;padding:0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tn{min-height:48px;border-radius:12px;background:var(--s2);display:grid;place-items:center;font-weight:800;font-size:15px;padding:6px 8px;text-align:center;line-height:1.15;overflow-wrap:anywhere}
 .tq{font-size:22px;font-weight:750;font-variant-numeric:tabular-nums;line-height:1.1}
 .tq small{display:block;font-size:12px;font-weight:400;color:var(--mute)}
 .tq.low small,.tq.out small{color:inherit}
@@ -285,13 +285,24 @@ async function leerTienda(){
   else{try{const r=await fetch('./datos.json',{cache:'no-cache'});if(r.ok)return{D:await r.json(),sha:null}}catch(e){}}
   const html=await (await fetch('./',{cache:'no-cache'})).text();const m=html.match(/<script type="application\/json" id="datos">([\s\S]*?)<\/script>/);if(!m)throw new Error('sin datos');return{D:JSON.parse(m[1]),sha:null}}
 const tiendaDe=p=>p&&p.web?TIENDA.find(t=>t.id===p.web):null;
+const etiqueta=(r,t)=>String((r.n||'Ref.')+' · '+t).slice(0,40);
+// tallas del inventario para un producto de la página: simples, o "Referencia · Talla"
+function tallasWeb(t){if(Array.isArray(t.refs)&&t.refs.length){const tallas=[],rk={};for(const r of t.refs)for(const x of (r.o||[])){let l=etiqueta(r,x);while(rk[l])l=(l+'·').slice(0,40);tallas.push(l);rk[l]=[String(r.id),String(x)]}return{tallas,rk}}
+  return{tallas:(Array.isArray(t.o)&&t.o.length?t.o:['Única']).map(x=>String(x).slice(0,40)),rk:undefined}}
 function aplicarAg(D){let cambio=false;const S=stockMap();
   for(const rp of D.productos||[]){
     const p=P.find(x=>x.web===rp.id);const seguido=p&&M.some(m=>m.pid===p.id);
     const antes=JSON.stringify([rp.ag||[],!!rp.agotado]);
-    if(seguido){const s=S[p.id]||{};const ag=p.tallas.filter(t=>(s[t]||0)<=0);if(ag.length)rp.ag=ag;else delete rp.ag;if(p.tallas.length&&ag.length===p.tallas.length)rp.agotado=true;else delete rp.agotado}
-    else{delete rp.ag;delete rp.agotado}
-    if(JSON.stringify([rp.ag||[],!!rp.agotado])!==antes)cambio=true}
+    const antesR=JSON.stringify((rp.refs||[]).map(r=>[r.ag||[],!!r.agotado]));
+    if(seguido&&Array.isArray(rp.refs)&&rp.refs.length){const s=S[p.id]||{},inv={};for(const [l,v] of Object.entries(p.rk||{}))inv[v[0]+'|'+v[1]]=l;
+      let todas=true;
+      for(const r of rp.refs){delete r.ag;delete r.agotado;const ag=[];let seg=0;
+        for(const x of (r.o||[])){const l=inv[r.id+'|'+x];if(l===undefined||!p.tallas.includes(l))continue;seg++;if((s[l]||0)<=0)ag.push(x)}
+        if(ag.length)r.ag=ag;const ago=(r.o||[]).length>0&&ag.length===(r.o||[]).length;if(ago)r.agotado=true;else todas=false}
+      delete rp.ag;if(todas)rp.agotado=true;else delete rp.agotado}
+    else if(seguido){const s=S[p.id]||{};const ag=p.tallas.filter(t=>(s[t]||0)<=0);if(ag.length)rp.ag=ag;else delete rp.ag;if(p.tallas.length&&ag.length===p.tallas.length)rp.agotado=true;else delete rp.agotado}
+    else{delete rp.ag;delete rp.agotado;(rp.refs||[]).forEach(r=>{delete r.ag;delete r.agotado})}
+    if(JSON.stringify([rp.ag||[],!!rp.agotado])!==antes||JSON.stringify((rp.refs||[]).map(r=>[r.ag||[],!!r.agotado]))!==antesR)cambio=true}
   return cambio}
 function programarTienda(ms=2500){if(!GH.owner||!GH.tok)return;clearTimeout(tTimer);tTimer=setTimeout(empujar,ms)}
 async function empujar(){
@@ -384,7 +395,7 @@ function leerFoto(file){return new Promise((res,rej)=>{const img=new Image();con
 function formProducto(id){
   const p=id?P.find(x=>x.id===id):null;
   const s=(id&&stockMap()[id])||{};
-  const f={web:p?.web||'',foto:p?.foto||'',nombre:p?.nombre||'',cat:p?.cat||'',costo:p?.costo||0,precio:p?.precio||0,minimo:p&&p.minimo!=null?String(p.minimo):''};
+  const f={rk:p?.rk,web:p?.web||'',foto:p?.foto||'',nombre:p?.nombre||'',cat:p?.cat||'',costo:p?.costo||0,precio:p?.precio||0,minimo:p&&p.minimo!=null?String(p.minimo):''};
   let sel=p?[...p.tallas]:[];
   let opc=[...TALLAS,...sel.filter(t=>!TALLAS.includes(t))];
   const ini={};
@@ -413,11 +424,11 @@ function formProducto(id){
   pintarFoto();pintarTallas();pintarGan();
   if($('#pweb'))$('#pweb').onchange=e=>{f.web=e.target.value;const t=TIENDA.find(x=>x.id===f.web);if(!t||p)return;
     if(!$('#pnom').value.trim())$('#pnom').value=t.n||'';if(!$('#pcat').value.trim())$('#pcat').value=t.c||'';if(!num($('#ppre').value)&&t.p){$('#ppre').value=miles(t.p);pintarGan()}
-    const ts=(Array.isArray(t.o)&&t.o.length?t.o:['Única']).map(x=>String(x).slice(0,12));for(const x of ts)if(!opc.includes(x))opc.push(x);sel=[...ts];pintarTallas()};
+    const tw=tallasWeb(t);f.rk=tw.rk;for(const x of tw.tallas)if(!opc.includes(x))opc.push(x);sel=[...tw.tallas];pintarTallas()};
   $('#pfile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{f.foto=await leerFoto(file);pintarFoto()}catch{toast('No se pudo leer esa foto')}e.target.value=''};
   $('#pquitar').onclick=()=>{f.foto='';pintarFoto()};
   $('#ptallas').onclick=e=>{const b=e.target.closest('[data-t]');if(!b)return;const t=b.dataset.t;sel=sel.includes(t)?sel.filter(x=>x!==t):[...sel,t];sel.sort((a,b)=>opc.indexOf(a)-opc.indexOf(b));pintarTallas()};
-  $('#padd').onclick=()=>{const t=$('#pnueva').value.trim().slice(0,12);if(!t)return;const ya=opc.find(x=>norm(x)===norm(t));if(ya){if(!sel.includes(ya))sel.push(ya)}else{opc.push(t);sel.push(t)}$('#pnueva').value='';pintarTallas()};
+  $('#padd').onclick=()=>{const t=$('#pnueva').value.trim().slice(0,40);if(!t)return;const ya=opc.find(x=>norm(x)===norm(t));if(ya){if(!sel.includes(ya))sel.push(ya)}else{opc.push(t);sel.push(t)}$('#pnueva').value='';pintarTallas()};
   $('#pnueva').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('#padd').click()}};
   bindMoney($('#pcos'),pintarGan);bindMoney($('#ppre'),pintarGan);
   $('#pmin').oninput=e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,3)};
@@ -428,7 +439,7 @@ function formProducto(id){
     if(p){for(const t of p.tallas)if(!sel.includes(t)&&(s[t]||0)!==0)return toast(`La talla ${t} todavía tiene ${s[t]} en stock`)}
     if(f.web&&P.some(x=>x.web===f.web&&x.id!==(p&&p.id)))return toast('Ese producto de la página ya está vinculado a otro');
     const mv=$('#pmin').value.trim();
-    const o={id:p?.id||uid(),nombre:nombre.slice(0,80),cat:$('#pcat').value.trim().slice(0,40),tallas:sel,costo:num($('#pcos').value),precio:num($('#ppre').value),minimo:mv===''?null:Number(mv),foto:f.foto,creado:p?.creado||Date.now(),web:f.web||undefined};
+    const o={id:p?.id||uid(),nombre:nombre.slice(0,80),cat:$('#pcat').value.trim().slice(0,40),tallas:sel,costo:num($('#pcos').value),precio:num($('#ppre').value),minimo:mv===''?null:Number(mv),foto:f.foto,creado:p?.creado||Date.now(),web:f.web||undefined,rk:f.web?(f.rk||p?.rk):undefined};
     const nuevos=p?[]:sel.filter(t=>ini[t]>0).map((t,i)=>({id:uid()+i,pid:o.id,nombre:o.nombre,talla:t,tipo:'entrada',cant:ini[t],precio:o.costo,costo:o.costo,fecha:hoy(),nota:'Stock inicial',ts:Date.now()}));
     P=p?P.map(x=>x.id===o.id?o:x):[...P,o];M.push(...nuevos);
     cerrar();render();toast(p?'Cambios guardados':'Producto agregado');guardar(async()=>{await S_.putP(o);if(nuevos.length)await S_.putMs(nuevos)})};
@@ -568,7 +579,7 @@ function renderAj(){
     ${!GH.owner?`<p>${T_TXT['no-web']}: ${esc('ashenco-catalogo.github.io/inventario.html')}</p>`:`
     <p><b style="color:${tEstado==='ok'?'var(--ok)':tEstado==='enviando'||!tEstado?'var(--ink)':'var(--warn)'}">${esc(T_TXT[tEstado]||'Conectando…')}</b></p>
     <p>${P.filter(x=>x.web).length} de ${TIENDA.length} productos de la página están vinculados. Cuando una talla vinculada llega a 0 se oculta en la página (tarda 1 o 2 minutos en verse).</p>
-    ${GH.tok&&tEstado!=='llave'?`<div class="btns"><button class="btn pri" id="tya">Actualizar ahora</button><button class="btn" id="ttraer">Traer productos de la página</button></div><button class="linkbtn" id="tsal">Desconectar la llave de este celular</button>`
+    ${GH.tok&&tEstado!=='llave'?`<div class="btns"><button class="btn pri" id="tya">Actualizar ahora</button><button class="btn" id="ttraer">Traer productos y referencias de la página</button></div><button class="linkbtn" id="tsal">Desconectar la llave de este celular</button>`
       :`<label class="f" for="tkey">Llave de GitHub (la misma que usas en #editar)</label><input class="in" id="tkey" type="password" autocomplete="off" placeholder="github_pat_…"><div class="btns" style="margin-top:10px"><button class="btn pri" id="tcon">Conectar</button></div><p class="hint">Si ya entraste a #editar en este celular, se conecta sola.</p>`}`}</div>
   <div class="card"><h2>Cargar productos desde una lista</h2><p>Sube un archivo CSV (de Excel o Google Sheets) con columnas: nombre, categoria, talla, cantidad, costo, precio_venta. Una fila por talla. Se suman a lo que ya tienes.</p>
     <div class="btns"><button class="btn" id="acsv">Cargar CSV</button><button class="btn" id="aplant">Descargar plantilla</button></div></div>
@@ -595,17 +606,22 @@ function renderAj(){
 }
 async function traerTienda(){
   try{const {D}=await leerTienda();TIENDA=D.productos||[]}catch(e){return toast('No pude leer tu página. Revisa la conexión.')}
-  const libres=TIENDA.filter(t=>!P.some(p=>p.web===t.id));if(!libres.length)return toast('Todos los productos de la página ya están vinculados');
   const porNom=new Map(P.filter(p=>!p.web).map(p=>[norm(p.nombre),p]));
-  const vincular=[],crear=[];
-  for(const t of libres){const ya=porNom.get(norm(t.n));if(ya){vincular.push([ya,t]);porNom.delete(norm(t.n))}else crear.push(t)}
-  if(!await pregunta('¿Traer productos de la página?',`${crear.length} se crean en el inventario${vincular.length?` y ${vincular.length} que ya tenías con el mismo nombre se vinculan`:''}. Después pon cuántas tienes y cuánto te costaron. Mientras no registres stock, la página no cambia.`,'Traer'))return;
-  const nuevos=crear.map((t,i)=>limpiarP({id:uid()+'w'+i,nombre:t.n||'Producto',cat:t.c||'',tallas:Array.isArray(t.o)&&t.o.length?t.o:['Única'],costo:0,precio:Number(t.p)||0,minimo:null,foto:fotoOk(t.f)?t.f:'',creado:Date.now(),web:t.id}));
-  const cambiados=vincular.map(([p,t])=>({...p,web:t.id}));
-  P=[...P.map(p=>cambiados.find(c=>c.id===p.id)||p),...nuevos];render();toast('Productos traídos de la página');
+  const vincular=[],crear=[],actualizar=[];let nuevasT=0;
+  for(const t of TIENDA){const tw=tallasWeb(t);const ya=P.find(p=>p.web===t.id);
+    if(ya){const rk={...(ya.rk||{})},tallas=[...ya.tallas];const tiene=new Set(Object.values(rk).map(v=>v[0]+'|'+v[1]));
+      for(const l of tw.tallas){const v=tw.rk?tw.rk[l]:null;if(v?tiene.has(v[0]+'|'+v[1]):tallas.includes(l))continue;let l2=l;while(tallas.includes(l2))l2=(l2+'·').slice(0,40);tallas.push(l2);if(v)rk[l2]=v;nuevasT++}
+      if(tallas.length!==ya.tallas.length)actualizar.push({...ya,tallas,rk:tw.rk?rk:ya.rk});continue}
+    const mismo=porNom.get(norm(t.n));if(mismo){vincular.push([mismo,t,tw]);porNom.delete(norm(t.n))}else crear.push([t,tw])}
+  if(!crear.length&&!vincular.length&&!actualizar.length)return toast('Todo está al día con tu página');
+  const partes=[];if(crear.length)partes.push(`${crear.length} productos nuevos`);if(vincular.length)partes.push(`${vincular.length} que ya tenías se vinculan`);if(actualizar.length)partes.push(`${nuevasT} referencias o tallas nuevas en ${actualizar.length} productos`);
+  if(!await pregunta('¿Traer cambios de la página?',partes.join(', ')+'. Después registra cuántas tienes con "+ Llegó". Mientras no registres stock, la página no cambia.','Traer'))return;
+  const nuevos=crear.map(([t,tw],i)=>limpiarP({id:uid()+'w'+i,nombre:t.n||'Producto',cat:t.c||'',tallas:tw.tallas,costo:0,precio:Number(t.p)||0,minimo:null,foto:fotoOk(t.f)?t.f:'',creado:Date.now(),web:t.id,rk:tw.rk}));
+  const cambiados=[...vincular.map(([p,t,tw])=>({...p,web:t.id,rk:tw.rk,tallas:[...new Set([...p.tallas,...tw.tallas])]})),...actualizar];
+  P=[...P.map(p=>cambiados.find(c=>c.id===p.id)||p),...nuevos];render();toast('Listo, inventario al día con tu página');
   guardar(()=>pool([...nuevos,...cambiados].map(p=>()=>S_.putP(p))))}
-const limpiarP=p=>({id:String(p.id),nombre:String(p.nombre).slice(0,80),cat:String(p.cat||'').slice(0,40),tallas:(Array.isArray(p.tallas)?p.tallas:[]).map(t=>String(t).slice(0,12)).filter((t,i,a)=>t&&a.indexOf(t)===i),costo:Math.max(0,Math.round(Number(p.costo)||0)),precio:Math.max(0,Math.round(Number(p.precio)||0)),minimo:p.minimo==null||p.minimo===''||isNaN(Number(p.minimo))?null:Math.max(0,Math.round(Number(p.minimo))),foto:fotoOk(p.foto)?p.foto:'',creado:Number(p.creado)||Date.now(),web:typeof p.web==='string'&&p.web?p.web.slice(0,80):undefined});
-const limpiarM=m=>({id:String(m.id),pid:String(m.pid),nombre:String(m.nombre||'').slice(0,80),talla:String(m.talla).slice(0,12),tipo:TIPOS[m.tipo]?m.tipo:'salida',cant:Math.max(0,Math.round(Number(m.cant)||0)),precio:Math.max(0,Math.round(Number(m.precio)||0)),costo:Math.max(0,Math.round(Number(m.costo)||0)),fecha:/^\d{4}-\d{2}-\d{2}$/.test(m.fecha)?m.fecha:hoy(),nota:String(m.nota||'').slice(0,140),ts:Number(m.ts)||Date.now()});
+const limpiarP=p=>({id:String(p.id),nombre:String(p.nombre).slice(0,80),cat:String(p.cat||'').slice(0,40),tallas:(Array.isArray(p.tallas)?p.tallas:[]).map(t=>String(t).slice(0,40)).filter((t,i,a)=>t&&a.indexOf(t)===i),costo:Math.max(0,Math.round(Number(p.costo)||0)),precio:Math.max(0,Math.round(Number(p.precio)||0)),minimo:p.minimo==null||p.minimo===''||isNaN(Number(p.minimo))?null:Math.max(0,Math.round(Number(p.minimo))),foto:fotoOk(p.foto)?p.foto:'',creado:Number(p.creado)||Date.now(),web:typeof p.web==='string'&&p.web?p.web.slice(0,80):undefined,rk:p.rk&&typeof p.rk==='object'?Object.fromEntries(Object.entries(p.rk).filter(([k,v])=>Array.isArray(v)&&v.length===2).map(([k,v])=>[String(k).slice(0,40),[String(v[0]),String(v[1])]])):undefined});
+const limpiarM=m=>({id:String(m.id),pid:String(m.pid),nombre:String(m.nombre||'').slice(0,80),talla:String(m.talla).slice(0,40),tipo:TIPOS[m.tipo]?m.tipo:'salida',cant:Math.max(0,Math.round(Number(m.cant)||0)),precio:Math.max(0,Math.round(Number(m.precio)||0)),costo:Math.max(0,Math.round(Number(m.costo)||0)),fecha:/^\d{4}-\d{2}-\d{2}$/.test(m.fecha)?m.fecha:hoy(),nota:String(m.nota||'').slice(0,140),ts:Number(m.ts)||Date.now()});
 $('#fileJson').onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;let d;try{d=JSON.parse(await file.text())}catch(x){return toast('Ese archivo no es una copia válida')}
   if(!d||!Array.isArray(d.productos)||!Array.isArray(d.movimientos))return toast('Ese archivo no es una copia válida');
   const ps=d.productos.filter(p=>p&&p.id&&p.nombre).map(limpiarP);const ids=new Set(ps.map(p=>p.id));
@@ -634,7 +650,7 @@ $('#fileCsv').onchange=async e=>{const file=e.target.files[0];e.target.value='';
     if(!p){p={id:uid()+nuevosP.length,nombre:nombre.slice(0,80),cat:iC>=0?String(r[iC]||'').trim().slice(0,40):'',tallas:[],costo:iCo>=0?csvNum(r[iCo]):0,precio:iP>=0?csvNum(r[iP]):0,minimo:null,foto:'',creado:Date.now()};porNombre.set(k,p);nuevosP.push(p)}
     else if(!nuevosP.includes(p)&&!pend.has(p.id)){pend.set(p.id,{...p,tallas:[...p.tallas]});actual++}
     const obj=nuevosP.includes(p)?p:pend.get(p.id);
-    const t=talla.slice(0,12);if(!obj.tallas.includes(t))obj.tallas.push(t);
+    const t=talla.slice(0,40);if(!obj.tallas.includes(t))obj.tallas.push(t);
     if(cant>0)movs.push({id:uid()+'c'+movs.length,pid:obj.id,nombre:obj.nombre,talla:t,tipo:'entrada',cant,precio:obj.costo,costo:obj.costo,fecha:hoy(),nota:'Carga desde lista',ts:Date.now()})}
   if(!nuevosP.length&&!movs.length&&!pend.size)return toast('No encontré filas para cargar');
   const uds=movs.reduce((a,m)=>a+m.cant,0);
