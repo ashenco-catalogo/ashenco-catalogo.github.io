@@ -237,7 +237,7 @@ body.go .big span{animation:ltr 1.9s cubic-bezier(.2,.8,.2,1) backwards,shine 2.
 body .big span,body .giant span{background:none;color:#fff;-webkit-text-fill-color:#fff;text-shadow:none}
 body.go .big span{animation:ltr 1.9s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i)*.17s + .1s)}
 .sc .ph2 img{filter:none}.sc.pr .ph2 img{filter:grayscale(.35) brightness(.78)}.ph2 .gal img{position:static}
-.sc .pc{margin:0;font-weight:700;font-size:15px}.sc .pc s{color:var(--mu);font-weight:400;margin:0 4px}.sc .pc em{font-style:normal;color:var(--bk);background:var(--wh);border-radius:999px;padding:2px 7px;font-size:11px}
+.sc .tl{margin:0;font:600 11px 'Space Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--mu)}.sc .tl b{color:var(--wh);font-weight:700}.edch{display:flex;flex-wrap:wrap;gap:6px}.edch button{border:1px solid var(--ln,#444);background:transparent;color:inherit;border-radius:999px;padding:7px 12px;font:600 12px 'Space Mono',monospace}.edch button.on{background:#fff;color:#000;border-color:#fff}.sc .pc{margin:0;font-weight:700;font-size:15px}.sc .pc s{color:var(--mu);font-weight:400;margin:0 4px}.sc .pc em{font-style:normal;color:var(--bk);background:var(--wh);border-radius:999px;padding:2px 7px;font-size:11px}
 .sc.empty{padding:22px;border:1px dashed var(--ln);border-radius:18px;text-align:center;justify-items:center}.ver{text-align:center;color:#555;font-size:10px;letter-spacing:.12em;padding:0 0 22px}
 #orb{display:none}.lg img{width:auto;height:22px;border-radius:0;object-fit:contain}
 #intro .ia{width:auto;height:auto;background:none;box-shadow:none;animation:none;border-radius:0}#intro .ia img{width:112px;height:auto;object-fit:contain;mix-blend-mode:normal;border-radius:0}
@@ -314,7 +314,7 @@ body.go .big span{animation:ltr 1.9s cubic-bezier(.2,.8,.2,1) backwards;animatio
 </section>
 
 <footer><div class="giant" id="giant"></div><div class="fmeta mono"><span id="cp"></span><span id="cp2"></span></div></footer>
-<p class="ver mono">v26.11.27-10</p>
+<p class="ver mono">v26.11.27-11</p>
 </div>
 
 <button class="bagbar" id="bagbar"><span class="t" id="bagt">1 prenda<small>Lista para pedir</small></span><span class="go">Pedir por WhatsApp →</span></button>
@@ -344,10 +344,10 @@ $('info').innerHTML=B.info.map(function(r){return '<div><span class="mono">'+esc
 document.querySelectorAll('[data-soc]').forEach(function(a){var u=SOC[a.getAttribute('data-soc')];if(!u)a.remove();else{a.href=u;a.target='_blank';a.rel='noopener'}});
 var SECS=[
  {k:'ultima',id:'ultima',g:'sgrid3',cta:'Lo quiero',bd:function(p){return p.talla?'Última talla: '+p.talla:'Última talla'},msg:function(p){return 'Hola ashen co. 👋 Quiero la última talla'+(p.talla?' ('+p.talla+')':'')+' de: '+p.n+(p.p?' (promo '+cop(p.p)+')':'')+'. ¿Aún está disponible?'},empty:'Aún no hay prendas en promoción. Escríbenos y te avisamos cuando haya.',emsg:'Hola ashen co. 👋 Avísame cuando haya promociones de última talla'},
- {k:'reserva',id:'reserva',g:'sgrid2',cta:'Reservar',bd:function(p){return p.fecha||'Reserva'},msg:function(p){return 'Hola ashen co. 👋 Quiero reservar: '+p.n+(p.p?' ('+cop(p.p)+')':'')+(p.fecha?' (aún no disponible, llega: '+p.fecha+'). ¿Me avisas cuando llegue y cómo la aparto?':'. ¿Cómo la aparto?')},empty:'Aún no hay prendas para reservar. Escríbenos y te contamos qué viene.',emsg:'Hola ashen co. 👋 Quiero saber qué prendas puedo reservar'},
+ {k:'reserva',id:'reserva',g:'sgrid2',cta:'Reservar',bd:function(p){return p.fecha||'Reserva'},msg:function(p){return 'Hola ashen co. 👋 Quiero reservar: '+p.n+(p.p?' ('+cop(p.p)+')':'')+(p.tallas&&p.tallas.length?' [tallas: '+p.tallas.join(', ')+']':'')+(p.fecha?' (aún no disponible, llega: '+p.fecha+'). ¿Me avisas cuando llegue y cómo la aparto?':'. ¿Cómo la aparto?')},empty:'Aún no hay prendas para reservar. Escríbenos y te contamos qué viene.',emsg:'Hola ashen co. 👋 Quiero saber qué prendas puedo reservar'},
 ];
 function scard(S,p){var pc=p.p?'<p class="pc">'+cop(p.p)+(p.antes&&p.antes>p.p?' <s>'+cop(p.antes)+'</s> <em>-'+Math.round((1-p.p/p.antes)*100)+'%</em>':'')+'</p>':'';
- return '<article class="sc rv'+((S.pr||p.fecha)?' pr':'')+'"><div class="ph2" data-n="'+esc(p.n)+'">'+gal(p)+'<span class="bd mono">'+esc(S.bd(p))+'</span></div><h3>'+esc(p.n)+'</h3>'+pc+(p.d?'<p class="d">'+esc(p.d)+'</p>':'')+'<a class="ask" href="#" data-wa data-wm="'+esc(S.msg(p))+'" target="_blank" rel="noopener">'+S.cta+'</a></article>'}
+ return '<article class="sc rv'+((S.pr||p.fecha)?' pr':'')+'"><div class="ph2" data-n="'+esc(p.n)+'">'+gal(p)+'<span class="bd mono">'+esc(S.bd(p))+'</span></div><h3>'+esc(p.n)+'</h3>'+pc+(p.tallas&&p.tallas.length?'<p class="tl"><b>'+(p.tipo==='inf'?'Inferior':'Superior')+'</b> · Tallas: '+esc(p.tallas.join(' · '))+'</p>':'')+(p.d?'<p class="d">'+esc(p.d)+'</p>':'')+'<a class="ask" href="#" data-wa data-wm="'+esc(S.msg(p))+'" target="_blank" rel="noopener">'+S.cta+'</a></article>'}
 SECS.forEach(function(S){var L=(S.k==='reserva'?(D.reserva||[]).concat(D.pronto||[]):D[S.k])||[],s=$(S.id);if(!s)return;
  if(!L.length){if(S.pr){s.remove();return}$(S.g).innerHTML='<div class="sc empty" style="grid-column:1/-1"><p class="d">'+esc(S.empty)+'</p><a class="ask" href="#" data-wa data-wm="'+esc(S.emsg)+'" target="_blank" rel="noopener">Escríbenos</a></div>';return}
  $(S.g).innerHTML=L.map(function(p){return scard(S,p)}).join('')});
@@ -548,11 +548,19 @@ function pcard(p){
 var KINDS=[
  {k:'ultima',t:'Promoción · Última talla',add:'+ Agregar prenda en promoción',def:{n:'Nueva promoción',talla:'',fs:[]},f:[['Nombre','n'],['Última talla que queda (ej. M)','talla'],['Precio de promoción (solo número)','p','num'],['Precio anterior (solo número)','antes','num'],['Descripción','d','area']]},
  {k:'reserva',t:'Reserva · Disponibles y próximos',add:'+ Agregar prenda para reservar',def:{n:'Nuevo producto',fs:[]},f:[['Nombre','n'],['Cuándo llega (opcional, ej. Pronto, Diciembre). Déjalo vacío si ya está disponible','fecha'],['Precio (solo número, opcional)','p','num'],['Descripción','d','area']]}];
+var TS={sup:['XS','S','M','L','XL','XXL'],inf:['26','28','30','32','34','36','38','40']};
+function tallasEd(p){var w=el('div',{class:'edl'}),ch=el('div',{class:'edch'}),cu;
+ var tp=el('select',{class:'fld'},[el('option',{value:'sup',text:'Superior (camisetas: S, M, L…)'}),el('option',{value:'inf',text:'Inferior (pantalones: 28, 30, 32…)'})]);tp.value=p.tipo==='inf'?'inf':'sup';
+ function draw(){ch.innerHTML='';var cur=p.tallas||[],base=TS[tp.value];base.concat(cur.filter(function(t){return base.indexOf(t)<0})).forEach(function(t){var b=el('button',{type:'button',text:t});if(cur.indexOf(t)>-1)b.className='on';b.onclick=function(){var c=(p.tallas||[]).slice(),i=c.indexOf(t);if(i>-1)c.splice(i,1);else c.push(t);p.tallas=c;cu.value=c.join(', ');draw()};ch.appendChild(b)})}
+ tp.onchange=function(){p.tipo=tp.value;draw()};
+ cu=el('input',{class:'fld',type:'text',placeholder:'o escríbelas separadas por coma: S, M, 30…'});cu.value=(p.tallas||[]).join(', ');
+ cu.oninput=function(){p.tallas=cu.value.split(',').map(function(x){return x.trim()}).filter(Boolean);draw()};
+ w.appendChild(el('span',{text:'Tallas disponibles'}));w.appendChild(tp);w.appendChild(ch);w.appendChild(cu);p.tipo=tp.value;draw();return w}
 function lcard(K,p){var box=el('div',{class:'edp'}),rm=el('button',{class:'edb dg',type:'button',text:'Quitar'}),armed=false;
  rm.onclick=function(){if(!armed){armed=true;rm.textContent='¿Seguro? Toca otra vez';setTimeout(function(){armed=false;rm.textContent='Quitar'},3000);return}ED[K.k]=ED[K.k].filter(function(x){return x!==p});drawEd(true)};
  box.appendChild(fotos(p));box.appendChild(secSel(K.k,p));
  K.f.forEach(function(f){var key=f[1];box.appendChild(f[2]==='num'?fld(f[0],p[key]||'',function(v){var n=parseInt(String(v).replace(/\D/g,''),10);if(n)p[key]=n;else delete p[key]},'tel'):fld(f[0],p[key]||'',function(v){p[key]=v},'text',f[2]==='area'?2:0))});
- box.appendChild(rm);return box}
+ if(K.k==='reserva')box.appendChild(tallasEd(p));box.appendChild(rm);return box}
 function drawEd(keep){var w=$('edwrap'),sy=w.scrollTop;w.innerHTML='';var st=el('span',{class:'edst'});
  var gb=el('button',{class:'edb pr',type:'button',text:'Guardar y publicar'});gb.onclick=function(){guardar(gb,st)};
  var cb=el('button',{class:'edb',type:'button',text:'Cerrar'});cb.onclick=closeEd;
