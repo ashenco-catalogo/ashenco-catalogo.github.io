@@ -314,7 +314,7 @@ body.go .big span{animation:ltr 1.9s cubic-bezier(.2,.8,.2,1) backwards;animatio
 </section>
 
 <footer><div class="giant" id="giant"></div><div class="fmeta mono"><span id="cp"></span><span id="cp2"></span></div></footer>
-<p class="ver mono">v26.11.27-11</p>
+<p class="ver mono">v26.11.27-12</p>
 </div>
 
 <button class="bagbar" id="bagbar"><span class="t" id="bagt">1 prenda<small>Lista para pedir</small></span><span class="go">Pedir por WhatsApp →</span></button>
@@ -325,9 +325,8 @@ body.go .big span{animation:ltr 1.9s cubic-bezier(.2,.8,.2,1) backwards;animatio
 <script>
 document.addEventListener('DOMContentLoaded',function(){var EMB=JSON.parse(document.getElementById('datos').textContent);(window.__dp||Promise.resolve(null)).then(function(x){return x||EMB}).then(function(D){if(!D||!D.brand||!D.productos)D=EMB;var BRAND=D.brand,PRODUCTOS=D.productos;
 /* ===== DATOS ===== */
-var B=BRAND,WA=B.whatsapp,SOC=B.social,CATS=['Todo'].concat(B.categorias),P=PRODUCTOS,DROP=(B.drop||[]).filter(function(i){return PRODUCTOS.some(function(p){return p.id===i})});if(!DROP.length)$('hz').style.display='none';
+var B=BRAND,WA=B.whatsapp,SOC=B.social,CATS=['Todo'].concat(B.categorias),P=PRODUCTOS,DROP=(B.drop||[]).filter(function(i){return PRODUCTOS.some(function(p){return p.id===i})});var $=function(i){return document.getElementById(i)};if(!DROP.length){var hzz=$('hz');if(hzz)hzz.style.display='none'}
 
-var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 var tt;function toast(m){var t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('on')},2200)}
 function wa(t){return 'https://wa.me/'+WA+'?text='+encodeURIComponent(t)}
