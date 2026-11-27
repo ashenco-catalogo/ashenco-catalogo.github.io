@@ -314,7 +314,7 @@ body.go .big span{animation:ltr 1.9s cubic-bezier(.2,.8,.2,1) backwards;animatio
 </section>
 
 <footer><div class="giant" id="giant"></div><div class="fmeta mono"><span id="cp"></span><span id="cp2"></span></div></footer>
-<p class="ver mono">v26.11.27-13</p>
+<p class="ver mono">v26.11.27-14</p>
 </div>
 
 <button class="bagbar" id="bagbar"><span class="t" id="bagt">1 prenda<small>Lista para pedir</small></span><span class="go">Pedir por WhatsApp →</span></button>
@@ -342,7 +342,7 @@ letras('big',B.big);letras('giant',B.big);$('lgt').textContent=B.nombre;$('hlt')
 $('info').innerHTML=B.info.map(function(r){return '<div><span class="mono">'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>'}).join('');
 document.querySelectorAll('[data-soc]').forEach(function(a){var u=SOC[a.getAttribute('data-soc')];if(!u)a.remove();else{a.href=u;a.target='_blank';a.rel='noopener'}});
 var SECS=[
- {k:'ultima',id:'ultima',g:'sgrid3',cta:'Lo quiero',bd:function(p){return p.talla?'Última talla: '+p.talla:'Última talla'},msg:function(p){return 'Hola ashen co. 👋 Quiero la última talla'+(p.talla?' ('+p.talla+')':'')+' de: '+p.n+(p.p?' (promo '+cop(p.p)+')':'')+'. ¿Aún está disponible?'},empty:'Aún no hay prendas en promoción. Escríbenos y te avisamos cuando haya.',emsg:'Hola ashen co. 👋 Avísame cuando haya promociones de última talla'},
+ {k:'ultima',id:'ultima',g:'sgrid3',cta:'Lo quiero',bd:function(p){var t=(p.tallas&&p.tallas.length)?p.tallas.join(', '):p.talla;return t?'Última talla: '+t:'Última talla'},msg:function(p){return 'Hola ashen co. 👋 Quiero la última talla'+((p.tallas&&p.tallas.length)?' ('+p.tallas.join(', ')+')':(p.talla?' ('+p.talla+')':''))+' de: '+p.n+(p.p?' (promo '+cop(p.p)+')':'')+'. ¿Aún está disponible?'},empty:'Aún no hay prendas en promoción. Escríbenos y te avisamos cuando haya.',emsg:'Hola ashen co. 👋 Avísame cuando haya promociones de última talla'},
  {k:'reserva',id:'reserva',g:'sgrid2',cta:'Reservar',bd:function(p){return p.fecha||'Reserva'},msg:function(p){return 'Hola ashen co. 👋 Quiero reservar: '+p.n+(p.p?' ('+cop(p.p)+')':'')+(p.tallas&&p.tallas.length?' [tallas: '+p.tallas.join(', ')+']':'')+(p.fecha?' (aún no disponible, llega: '+p.fecha+'). ¿Me avisas cuando llegue y cómo la aparto?':'. ¿Cómo la aparto?')},empty:'Aún no hay prendas para reservar. Escríbenos y te contamos qué viene.',emsg:'Hola ashen co. 👋 Quiero saber qué prendas puedo reservar'},
 ];
 function scard(S,p){var pc=p.p?'<p class="pc">'+cop(p.p)+(p.antes&&p.antes>p.p?' <s>'+cop(p.antes)+'</s> <em>-'+Math.round((1-p.p/p.antes)*100)+'%</em>':'')+'</p>':'';
@@ -545,7 +545,7 @@ function pcard(p){
  box.appendChild(tabla(p));box.appendChild(rm);
  return box}
 var KINDS=[
- {k:'ultima',t:'Promoción · Última talla',add:'+ Agregar prenda en promoción',def:{n:'Nueva promoción',talla:'',fs:[]},f:[['Nombre','n'],['Última talla que queda (ej. M)','talla'],['Precio de promoción (solo número)','p','num'],['Precio anterior (solo número)','antes','num'],['Descripción','d','area']]},
+ {k:'ultima',t:'Promoción · Última talla',add:'+ Agregar prenda en promoción',def:{n:'Nueva promoción',talla:'',fs:[]},f:[['Nombre','n'],['Precio de promoción (solo número)','p','num'],['Precio anterior (solo número)','antes','num'],['Descripción','d','area']]},
  {k:'reserva',t:'Reserva · Disponibles y próximos',add:'+ Agregar prenda para reservar',def:{n:'Nuevo producto',fs:[]},f:[['Nombre','n'],['Cuándo llega (opcional, ej. Pronto, Diciembre). Déjalo vacío si ya está disponible','fecha'],['Precio (solo número, opcional)','p','num'],['Descripción','d','area']]}];
 var TS={sup:['XS','S','M','L','XL','XXL'],inf:['26','28','30','32','34','36','38','40']};
 function tallasEd(p){var w=el('div',{class:'edl'}),ch=el('div',{class:'edch'}),cu;
@@ -559,7 +559,7 @@ function lcard(K,p){var box=el('div',{class:'edp'}),rm=el('button',{class:'edb d
  rm.onclick=function(){if(!armed){armed=true;rm.textContent='¿Seguro? Toca otra vez';setTimeout(function(){armed=false;rm.textContent='Quitar'},3000);return}ED[K.k]=ED[K.k].filter(function(x){return x!==p});drawEd(true)};
  box.appendChild(fotos(p));box.appendChild(secSel(K.k,p));
  K.f.forEach(function(f){var key=f[1];box.appendChild(f[2]==='num'?fld(f[0],p[key]||'',function(v){var n=parseInt(String(v).replace(/\D/g,''),10);if(n)p[key]=n;else delete p[key]},'tel'):fld(f[0],p[key]||'',function(v){p[key]=v},'text',f[2]==='area'?2:0))});
- if(K.k==='reserva')box.appendChild(tallasEd(p));box.appendChild(rm);return box}
+ if(K.k==='reserva'||K.k==='ultima')box.appendChild(tallasEd(p));box.appendChild(rm);return box}
 function drawEd(keep){var w=$('edwrap'),sy=w.scrollTop;w.innerHTML='';var st=el('span',{class:'edst'});
  var gb=el('button',{class:'edb pr',type:'button',text:'Guardar y publicar'});gb.onclick=function(){guardar(gb,st)};
  var cb=el('button',{class:'edb',type:'button',text:'Cerrar'});cb.onclick=closeEd;
