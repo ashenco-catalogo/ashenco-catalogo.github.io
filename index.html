@@ -241,6 +241,7 @@ body.go .big span{animation:ltr 1.9s cubic-bezier(.2,.8,.2,1) backwards;animatio
 .sc.empty{padding:22px;border:1px dashed var(--ln);border-radius:18px;text-align:center;justify-items:center}.ver{text-align:center;color:#555;font-size:10px;letter-spacing:.12em;padding:0 0 22px}
 #orb{display:none}.lg img{width:auto;height:22px;border-radius:0;object-fit:contain}
 #intro .ia{width:auto;height:auto;background:none;box-shadow:none;animation:none;border-radius:0}#intro .ia img{width:112px;height:auto;object-fit:contain;mix-blend-mode:normal;border-radius:0}
+#vw{position:fixed;inset:0;z-index:99999;background:rgba(5,5,6,.96);display:none;touch-action:pan-x pan-y}#vw.on{display:block}#vw .vs{position:absolute;inset:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch}#vw .vs::-webkit-scrollbar{display:none}#vw .vp{flex:none;width:100%;height:100%;scroll-snap-align:center;overflow:auto;display:grid;place-items:center;-webkit-overflow-scrolling:touch}#vw .vp img{max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in;display:block}#vw .vp.z{place-items:start}#vw .vp.z img{max-width:none;max-height:none;width:230%;cursor:zoom-out}#vw .vx{position:absolute;right:14px;top:14px;z-index:2;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.6);color:#fff;font-size:20px}#vw .vc{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:2;font:600 12px 'Space Mono',monospace;color:#fff;background:rgba(0,0,0,.6);padding:6px 12px;border-radius:999px}.ph img,.ph2 img{cursor:zoom-in}
 </style>
 </head>
 <body class="lock">
@@ -314,7 +315,7 @@ body.go .big span{animation:ltr 1.9s cubic-bezier(.2,.8,.2,1) backwards;animatio
 </section>
 
 <footer><div class="giant" id="giant"></div><div class="fmeta mono"><span id="cp"></span><span id="cp2"></span></div></footer>
-<p class="ver mono">v26.11.27-14</p>
+<p class="ver mono">v26.11.27-15</p>
 </div>
 
 <button class="bagbar" id="bagbar"><span class="t" id="bagt">1 prenda<small>Lista para pedir</small></span><span class="go">Pedir por WhatsApp →</span></button>
@@ -605,5 +606,14 @@ addEventListener('hashchange',function(){if(location.hash==='#editar')openEd()})
 }var D1=(D0&&D0.brand&&D0.productos)?D0:EMB;try{RUN(D1)}catch(e){console.error(e);if(D1!==EMB){try{RUN(EMB)}catch(e2){console.error(e2)}}}})});
 </script>
 <script>if(!/\.github\.io$/.test(location.hostname))window.__SRC='<!DOCTYPE html>\n'+document.documentElement.outerHTML</script>
+<div id="vw" aria-modal="true" role="dialog"><button class="vx" type="button" aria-label="Cerrar">✕</button><div class="vs"></div><div class="vc"></div></div>
+<script>(function(){var vw=document.getElementById('vw'),vs=vw.querySelector('.vs'),vc=vw.querySelector('.vc');
+function cnt(){var n=vs.children.length;vc.textContent=(Math.round(vs.scrollLeft/(vs.clientWidth||1))+1)+' / '+n;vc.style.display=n>1?'':'none'}
+function close(){vw.classList.remove('on');vs.innerHTML='';document.documentElement.style.overflow=''}
+function open(list,i){vs.innerHTML='';list.forEach(function(u){var p=document.createElement('div');p.className='vp';var m=document.createElement('img');m.src=u;m.alt='';m.draggable=false;p.appendChild(m);p.onclick=function(e){if(e.target.closest('.vx'))return;p.classList.toggle('z');if(!p.classList.contains('z')){p.scrollLeft=0;p.scrollTop=0}else{p.scrollLeft=(p.scrollWidth-p.clientWidth)/2;p.scrollTop=(p.scrollHeight-p.clientHeight)/2}};vs.appendChild(p)});
+vw.classList.add('on');document.documentElement.style.overflow='hidden';vs.scrollLeft=i*vw.clientWidth;cnt()}
+vs.addEventListener('scroll',cnt);vw.querySelector('.vx').onclick=close;document.addEventListener('keydown',function(e){if(e.key==='Escape')close()});
+document.addEventListener('click',function(e){var im=e.target.closest&&e.target.closest('.ph img,.ph2 img');if(!im||e.target.closest('button,a'))return;var box=im.closest('.ph,.ph2'),L=[].slice.call(box.querySelectorAll('img')).filter(function(x){return x.getAttribute('src')&&x.getAttribute('src').indexOf('data:image/gif')!==0});if(!L.length)return;e.preventDefault();open(L.map(function(x){return x.currentSrc||x.src}),Math.max(0,L.indexOf(im)))});
+})()</script>
 </body>
 </html>
