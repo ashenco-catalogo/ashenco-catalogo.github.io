@@ -315,7 +315,7 @@ body.go .big span{animation:ltr 1.9s cubic-bezier(.2,.8,.2,1) backwards;animatio
 </section>
 
 <footer><div class="giant" id="giant"></div><div class="fmeta mono"><span id="cp"></span><span id="cp2"></span></div></footer>
-<p class="ver mono">v26.11.27-15</p>
+<p class="ver mono">v26.11.27-16</p>
 </div>
 
 <button class="bagbar" id="bagbar"><span class="t" id="bagt">1 prenda<small>Lista para pedir</small></span><span class="go">Pedir por WhatsApp →</span></button>
@@ -336,6 +336,7 @@ function imgs(p){return p.fs&&p.fs.length?p.fs:(p.f?[p.f]:[])}
 function gal(p){var L=imgs(p);if(L.length<2)return '<img src="'+img(L[0])+'" onerror="this.remove()" alt="'+esc(p.n)+'" loading="lazy">';return '<div class="gal">'+L.map(function(u){return '<img src="'+esc(u)+'" onerror="this.remove()" alt="'+esc(p.n)+'" loading="lazy" draggable="false">'}).join('')+'</div><span class="gct mono">1/'+L.length+'</span>'}
 var byId={};P.forEach(function(p){byId[p.id]=p});
 var SEL={};P.forEach(function(p){SEL[p.id]=0});
+var PU=(D.ultima||[]).map(function(u,i){var q={};for(var k in u)q[k]=u[k];q.id='u'+i;q.fs=imgs(u);q.o=null;q.t=null;q.w=0;var tl=(u.tallas&&u.tallas.length)?u.tallas.join(', '):u.talla;q.tag='Última talla'+(tl?': '+tl:'');q.b=1;q.d=u.d||'';byId[q.id]=q;return q});
 
 /* ===== marca y textos (vienen de productos.js) ===== */
 function letras(id,x){$(id).innerHTML=x.split('').map(function(c,i){return '<span style="--i:'+i+'">'+(c===' '?'&nbsp;':esc(c))+'</span>'}).join('')}
@@ -370,10 +371,10 @@ $('hzc').textContent='01 / '+String(DROP.length).padStart(2,'0');
 /* ===== catálogo ===== */
 var CAT='Todo';
 $('chips').innerHTML=CATS.map(function(c,i){return '<button class="chip'+(i?'':' on')+'" data-c="'+c+'">'+c+'</button>'}).join('');
-function render(){var L=P.filter(function(p){return CAT==='Todo'||p.c===CAT});
+function render(){var L=P.filter(function(p){return CAT==='Todo'||p.c===CAT}).concat(PU.filter(function(q){return CAT==='Todo'||q.c===CAT}));
  $('grid').innerHTML=L.map(function(p){var inb=BAG.some(function(b){return b.id===p.id});
   return '<article class="card'+(p.w?' w':'')+'" id="c-'+p.id+'"><div class="ph" data-n="'+esc(p.n)+'">'+gal(p)+(p.tag?'<span class="tag mono'+(p.b?' b':'')+'">'+esc(p.tag)+'</span>':'')+'<button class="add'+(inb?' on':'')+'" data-add="'+p.id+'" aria-label="Agregar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>'+
-  '<h3>'+esc(p.n)+(p.p?' · '+cop(p.p):'')+'</h3><p class="d">'+esc(p.d)+'</p>'+(p.o?'<div class="opts" data-o="'+p.id+'">'+p.o.map(function(o,i){return '<button class="'+(i===SEL[p.id]?'on':'')+'" data-i="'+i+'">'+esc(o)+'</button>'}).join('')+'</div>':'')+
+  '<h3>'+esc(p.n)+(p.p?' · '+cop(p.p):'')+(p.antes&&p.antes>p.p?' <s style="color:var(--mu);font-weight:400">'+cop(p.antes)+'</s>':'')+'</h3><p class="d">'+esc(p.d)+'</p>'+(p.o?'<div class="opts" data-o="'+p.id+'">'+p.o.map(function(o,i){return '<button class="'+(i===SEL[p.id]?'on':'')+'" data-i="'+i+'">'+esc(o)+'</button>'}).join('')+'</div>':'')+
   '<a class="ask" href="'+esc(wa(askMsg(p)))+'" target="_blank" rel="noopener" data-ask="'+p.id+'">'+(p.p?'Preguntar':'Preguntar precio')+' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M8 7h9v9"/></svg></a>'+(p.t&&p.t.rows&&p.t.rows.length?'<button class="tb" data-tab="'+p.id+'">Tabla de tallas</button>':'')+'</article>'}).join('');
  observeCards()}
 $('chips').addEventListener('click',function(e){var b=e.target.closest('.chip');if(!b)return;CAT=b.getAttribute('data-c');[].forEach.call(this.children,function(c){c.classList.toggle('on',c===b)});b.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});render();var g=$('catalogo').getBoundingClientRect().top+scrollY+$('catalogo').querySelector('.sec-h').offsetHeight+40;if(scrollY>g)window.scrollTo({top:g,behavior:'smooth'})});
@@ -382,7 +383,7 @@ $('chips').addEventListener('click',function(e){var b=e.target.closest('.chip');
 var BAG=[];try{BAG=JSON.parse(sessionStorage.getItem('eros-bag')||'[]')}catch(e){}
 function saveBag(){try{sessionStorage.setItem('eros-bag',JSON.stringify(BAG))}catch(e){}}
 function optOf(p){return p.o?p.o[SEL[p.id]]:''}
-function askMsg(p){var o=optOf(p);return 'Hola ashen co. 👋 Me interesa: '+p.n+(o?' ('+o+')':'')+'. ¿Precio y disponibilidad?'}
+function askMsg(p){var o=optOf(p);return 'Hola ashen co. 👋 Me interesa: '+p.n+(p.tag&&p.id.charAt(0)==='u'?' ['+p.tag+(p.p?', promo '+cop(p.p):'')+']':'')+(o?' ('+o+')':'')+'. ¿Precio y disponibilidad?'}
 function updBag(){var n=BAG.length;$('bagn').textContent=n;$('bagbar').classList.toggle('on',n>0);$('bagt').innerHTML=n+' prenda'+(n>1?'s':'')+'<small>Lista para pedir</small>'}
 document.addEventListener('click',function(e){
  var a=e.target.closest('[data-add]');if(a){var id=a.getAttribute('data-add'),p=byId[id],i=-1;BAG.forEach(function(b,k){if(b.id===id)i=k});
@@ -560,7 +561,8 @@ function lcard(K,p){var box=el('div',{class:'edp'}),rm=el('button',{class:'edb d
  rm.onclick=function(){if(!armed){armed=true;rm.textContent='¿Seguro? Toca otra vez';setTimeout(function(){armed=false;rm.textContent='Quitar'},3000);return}ED[K.k]=ED[K.k].filter(function(x){return x!==p});drawEd(true)};
  box.appendChild(fotos(p));box.appendChild(secSel(K.k,p));
  K.f.forEach(function(f){var key=f[1];box.appendChild(f[2]==='num'?fld(f[0],p[key]||'',function(v){var n=parseInt(String(v).replace(/\D/g,''),10);if(n)p[key]=n;else delete p[key]},'tel'):fld(f[0],p[key]||'',function(v){p[key]=v},'text',f[2]==='area'?2:0))});
- if(K.k==='reserva'||K.k==='ultima')box.appendChild(tallasEd(p));box.appendChild(rm);return box}
+ if(K.k==='ultima'){var cs=el('select',{class:'fld'},[el('option',{value:'',text:'Solo en "Todo"'})].concat(ED.brand.categorias.map(function(c){return el('option',{value:c,text:c})})));cs.value=p.c||'';cs.onchange=function(){if(cs.value)p.c=cs.value;else delete p.c};box.appendChild(el('label',{class:'edl'},[el('span',{text:'También mostrar en la categoría'}),cs]))}
+if(K.k==='reserva'||K.k==='ultima')box.appendChild(tallasEd(p));box.appendChild(rm);return box}
 function drawEd(keep){var w=$('edwrap'),sy=w.scrollTop;w.innerHTML='';var st=el('span',{class:'edst'});
  var gb=el('button',{class:'edb pr',type:'button',text:'Guardar y publicar'});gb.onclick=function(){guardar(gb,st)};
  var cb=el('button',{class:'edb',type:'button',text:'Cerrar'});cb.onclick=closeEd;
